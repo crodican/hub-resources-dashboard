@@ -1,0 +1,108 @@
+/* Custom styles for Recovery Resources Dashboard */
+
+.app-container {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px); /* Account for navbar height */
+  overflow: hidden;
+}
+
+.content-area {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Table styles */
+.table-responsive {
+  height: 100%;
+  overflow: auto;
+}
+
+.table th {
+  background-color: var(--bs-dark) !important;
+  color: white !important;
+  border-color: var(--bs-gray-600) !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.75rem 0.5rem;
+}
+
+.table td {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+  background-color: var(--bs-light);
+}
+
+/* Cursor styles */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.select-none {
+  user-select: none;
+}
+
+/* Sidebar styles */
+.sidebar {
+  background-color: var(--bs-light);
+  border-right: 1px solid var(--bs-border-color);
+  width: 200px;
+  min-height: 100vh;
+}
+
+/* Navbar adjustments */
+.navbar {
+  z-index: 1000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    height: calc(100vh - 56px);
+  }
+
+  .sidebar {
+    display: none;
+  }
+}
+
+/* Fullscreen mode */
+:fullscreen .app-container {
+  height: 100vh;
+}
+
+/* Table cell content alignment */
+.table td .d-flex {
+  gap: 0.25rem;
+}
+
+/* Icon hover effects */
+.bi:hover {
+  opacity: 0.7;
+}
+
+/* Custom Bootstrap overrides */
+.navbar-dark .navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+  color: white;
+}
+
+.nav-link.active {
+  background-color: var(--bs-primary);
+  color: white !important;
+  border-radius: 0.375rem;
+}
