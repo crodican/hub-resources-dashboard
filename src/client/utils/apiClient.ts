@@ -1,4 +1,4 @@
-import { ApiResponse, ResourceParams, ResourcesResponse, FilterData } from '../types/api'
+import { ResourceParams, ResourcesResponse, FilterData } from '../types/api'
 import { ResourceData } from '../types/resource'
 
 class ApiClient {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,60 +8,38 @@ import {
   ColumnDef,
   flexRender,
 } from '@tanstack/react-table'
-import { Table, Form } from 'react-bootstrap'
-import { ResourceData } from '../../types/resource'
+import { Table, Form, Spinner, Alert, Button } from 'react-bootstrap'
+import { useResources } from '../../hooks/useResources'
 
-const mockData: ResourceData[] = [
-  {
-    ID: 1,
-    'Location Name': 'Community Health Center',
-    Organization: 'Health Services Inc',
-    County: ['Philadelphia'],
-    'Populations Served': ['Adults', 'Seniors'],
-    'Resource Types': ['Healthcare', 'Mental Health'],
-    Categories: ['Primary Care'],
-    'More Info': 'Comprehensive health services',
-    Phone: '(215) 555-0123',
-    Address: '123 Main St',
-    City: 'Philadelphia',
-    State: 'PA',
-    Zip: '19101',
-    Website: 'https://example.com',
-    Image: '',
-    Latitude: 39.9526,
-    Longitude: -75.1652,
-    'Full Address': '123 Main St, Philadelphia, PA 19101',
-    'Phone URL': 'tel:+12155550123',
-    'Google Maps URL': 'https://maps.google.com/?q=39.9526,-75.1652'
-  },
-  {
-    ID: 2,
-    'Location Name': 'Recovery Support Center',
-    Organization: 'Hope Foundation',
-    County: ['Montgomery'],
-    'Populations Served': ['Adults', 'Youth'],
-    'Resource Types': ['Substance Abuse', 'Counseling'],
-    Categories: ['Outpatient Treatment'],
-    'More Info': 'Addiction recovery services',
-    Phone: '(610) 555-0456',
-    Address: '456 Oak Ave',
-    City: 'Norristown',
-    State: 'PA',
-    Zip: '19401',
-    Website: 'https://recovery.example.com',
-    Image: '',
-    Latitude: 40.1217,
-    Longitude: -75.3399,
-    'Full Address': '456 Oak Ave, Norristown, PA 19401',
-    'Phone URL': 'tel:+16105550456',
-    'Google Maps URL': 'https://maps.google.com/?q=40.1217,-75.3399'
-  }
-]
+interface ResourceTableProps {
+  searchValue?: string
+  selectedRowsCount?: number
+  onSelectedRowsChange?: (count: number) => void
+}
 
-export const ResourceTable: React.FC = () => {
+export const ResourceTable: React.FC<ResourceTableProps> = ({
+  searchValue,
+  onSelectedRowsChange
+}) => {
   const [rowSelection, setRowSelection] = useState({})
+  const { data, loading, error, refetch, updateParams } = useResources({
+    page: 1,
+    limit: 50,
+    search: searchValue || ''
+  })
 
-  const columns = useMemo<ColumnDef<ResourceData>[]>(
+  // Update search when searchValue prop changes
+  useEffect(() => {
+    updateParams({ search: searchValue || '' })
+  }, [searchValue, updateParams])
+
+  // Update selected rows count when row selection changes
+  useEffect(() => {
+    const count = Object.keys(rowSelection).length
+    onSelectedRowsChange?.(count)
+  }, [rowSelection, onSelectedRowsChange])
+
+  const columns = useMemo<ColumnDef<any>[]>(
     () => [
       {
         id: 'select',
@@ -107,19 +85,28 @@ export const ResourceTable: React.FC = () => {
       {
         accessorKey: 'County',
         header: 'County',
-        cell: ({ getValue }) => (getValue() as string[]).join(', '),
+        cell: ({ getValue }) => {
+          const value = getValue()
+          return typeof value === 'string' ? value : Array.isArray(value) ? value.join(', ') : ''
+        },
         size: 120,
       },
       {
         accessorKey: 'Populations Served',
         header: 'Populations Served',
-        cell: ({ getValue }) => (getValue() as string[]).join(', '),
+        cell: ({ getValue }) => {
+          const value = getValue()
+          return typeof value === 'string' ? value : Array.isArray(value) ? value.join(', ') : ''
+        },
         size: 150,
       },
       {
-        accessorKey: 'Resource Types',
-        header: 'Resource Types',
-        cell: ({ getValue }) => (getValue() as string[]).join(', '),
+        accessorKey: 'Resource Type',
+        header: 'Resource Type',
+        cell: ({ getValue }) => {
+          const value = getValue()
+          return typeof value === 'string' ? value : Array.isArray(value) ? value.join(', ') : ''
+        },
         size: 150,
       },
       {
@@ -137,12 +124,25 @@ export const ResourceTable: React.FC = () => {
         header: 'State',
         size: 60,
       },
+      {
+        accessorKey: 'Website',
+        header: 'Website',
+        cell: ({ getValue }) => {
+          const url = getValue() as string
+          return url ? (
+            <a href={url} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+              <i className="bi bi-link-45deg"></i>
+            </a>
+          ) : null
+        },
+        size: 80,
+      },
     ],
     []
   )
 
   const table = useReactTable({
-    data: mockData,
+    data: data || [],
     columns,
     state: {
       rowSelection,
@@ -154,6 +154,41 @@ export const ResourceTable: React.FC = () => {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   })
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
+        <div className="text-center">
+          <Spinner animation="border" role="status" className="mb-3" />
+          <div>Loading resources...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Alert variant="danger" className="m-3">
+        <Alert.Heading>Error Loading Resources</Alert.Heading>
+        <p>{error}</p>
+        <Button variant="outline-danger" onClick={refetch}>
+          Try Again
+        </Button>
+      </Alert>
+    )
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
+        <div className="text-center">
+          <i className="bi bi-database" style={{ fontSize: '3rem', color: '#6c757d' }}></i>
+          <h5 className="mt-3 text-muted">No resources found</h5>
+          <p className="text-muted">Try adjusting your search or filters</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="table-responsive">

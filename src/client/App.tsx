@@ -16,7 +16,7 @@ function App() {
   const [currentView, setCurrentView] = useState<'table' | 'sql'>('table')
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [selectedRowsCount] = useState(0)
+  const [selectedRowsCount, setSelectedRowsCount] = useState(0)
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -68,7 +68,15 @@ function App() {
             />
 
             <div className="content-area">
-              {currentView === 'table' ? <TableView /> : <SqlView />}
+              {currentView === 'table' ? (
+                <TableView
+                  searchValue={searchValue}
+                  selectedRowsCount={selectedRowsCount}
+                  onSelectedRowsChange={setSelectedRowsCount}
+                />
+              ) : (
+                <SqlView />
+              )}
             </div>
           </Col>
         </Row>
